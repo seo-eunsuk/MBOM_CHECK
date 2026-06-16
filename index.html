@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBOM Check — PLM vs ERP 비교</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f0f2f5; color: #222; min-height: 100vh; }
+
+  header { background: #1565c0; color: white; padding: 20px 32px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 22px; font-weight: 700; }
+  header p  { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+
+  main { max-width: 860px; margin: 32px auto; padding: 0 16px 60px; }
+
+  .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px;
+          box-shadow: 0 1px 4px rgba(0,0,0,.08); border: 1px solid #e8eaed; }
+  .card-title { font-size: 15px; font-weight: 700; color: #1565c0; margin-bottom: 16px;
+                display: flex; align-items: center; gap: 8px; }
+  .step-badge { background: #1565c0; color: white; border-radius: 50%; width: 24px; height: 24px;
+                display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+  .bookmarklet-box { background: #f8f9ff; border: 1px solid #c5cae9; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .bookmarklet-box h3 { font-size: 13px; font-weight: 700; color: #3949ab; margin-bottom: 8px; }
+  .bookmarklet-box p  { font-size: 12px; color: #555; margin-bottom: 12px; line-height: 1.6; }
+  .bm-link { display: inline-block; padding: 8px 18px; background: #3949ab; color: white !important;
+             text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;
+             cursor: grab; border: 2px dashed transparent; transition: all .2s; }
+  .bm-link:hover { background: #283593; border-color: #9fa8da; }
+  .bm-hint { font-size: 11px; color: #888; margin-top: 8px; }
+
+  .upload-zone { border: 2px dashed #ccc; border-radius: 8px; padding: 28px; text-align: center;
+                 cursor: pointer; transition: all .2s; background: #fafafa; position: relative; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: #1565c0; background: #e8f0fe; }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-zone .icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-zone p { font-size: 13px; color: #666; }
+  .upload-zone .filename { font-size: 13px; font-weight: 600; color: #1565c0; margin-top: 6px; }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+                  border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }
+  .status-badge.ok   { background: #e8f5e9; color: #2e7d32; }
+  .status-badge.wait { background: #fff3e0; color: #e65100; }
+  .status-badge.err  { background: #ffebee; color: #c62828; }
+
+  .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+         cursor: pointer; transition: all .2s; margin-top: 4px; }
+  .btn-primary { background: #1565c0; color: white; }
+  .btn-primary:hover:not(:disabled) { background: #0d47a1; }
+  .btn-success { background: #2e7d32; color: white; }
+  .btn-success:hover:not(:disabled) { background: #1b5e20; }
+  .btn:disabled { background: #ccc; cursor: not-allowed; color: #888; }
+
+  .log-area { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 12px 16px;
+              font-family: 'Consolas', monospace; font-size: 11px; line-height: 1.7;
+              max-height: 180px; overflow-y: auto; margin-top: 12px; display: none; }
+  .log-area.show { display: block; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  .how-to { background: #fffde7; border: 1px solid #f9a825; border-radius: 8px; padding: 14px 16px;
+            font-size: 12px; line-height: 1.9; color: #555; margin-bottom: 12px; }
+  .how-to strong { color: #e65100; }
+  ol { padding-left: 18px; }
+  ol li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🔍 MBOM Check</h1>
+    <p>PLM 파트리스트 vs ERP 통합BOM 비교 — 차이 셀 노란색 강조 xlsx 다운로드</p>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ STEP 1: PLM 북마크릿 ══ -->
+<div class="card">
+  <div class="card-title"><span class="step-badge">1</span> PLM 파트리스트 데이터 추출</div>
+
+  <div class="how-to">
+    <ol>
+      <li><strong>아래 버튼</strong>을 마우스로 끌어 Chrome 북마크 바에 놓으세요</li>
+      <li>PLM (<code>plm.fursys.com</code>)에 로그인 후 <strong>파트리스트 상세 페이지</strong>로 이동</li>
+      <li>품목코드 조회 → 결과 행 클릭해서 파트리스트 트리가 보이는 상태에서</li>
+      <li>저장한 북마크릿 클릭 → <code>plm_품목코드.json</code> 자동 다운로드</li>
+    </ol>
+  </div>
+
+  <div class="bookmarklet-box">
+    <h3>📎 PLM 데이터 추출 북마크릿</h3>
+    <p>아래 버튼을 북마크 바에 드래그하세요</p>
+    <a class="bm-link" id="bmPlm" href="#">📋 PLM 추출</a>
+    <p class="bm-hint">※ 드래그가 안 되면: 북마크 추가(Ctrl+D) → 편집 → URL에 아래 코드 붙여넣기</p>
+    <details style="margin-top:10px">
+      <summary style="font-size:12px;color:#888;cursor:pointer">코드 직접 복사</summary>
+      <textarea id="plmCode" readonly style="width:100%;height:80px;font-size:10px;margin-top:6px;border:1px solid #ddd;border-radius:4px;padding:6px;resize:none;font-family:monospace"></textarea>
+    </details>
+  </div>
+
+  <div class="upload-zone" id="plmZone">
+    <input type="file" id="plmFile" accept=".json">
+    <div class="icon">📁</div>
+    <p>PLM JSON 파일을 여기에 끌어다 놓거나 클릭하여 선택</p>
+    <div class="filename" id="plmFileName"></div>
+  </div>
+  <div id="plmStatus" class="status-badge wait">⏳ 대기 중</div>
+</div>
+
+<!-- ══ STEP 2: ERP 북마크릿 ══ -->
+<div class="card">
+  <div class="card-title"><span class="step-badge">2</span> ERP 통합BOM 데이터 추출</div>
+
+  <div class="how-to">
+    <ol>
+      <li><strong>아래 버튼</strong>을 마우스로 끌어 Chrome 북마크 바에 놓으세요</li>
+      <li>EP (<code>ep.fursys.com</code>) → ERP Korea 접속</li>
+      <li>생산관리 → BOM관리 → <strong>통합BOM 관리</strong> 메뉴 이동</li>
+      <li>품목코드 입력 → 사업장 선택 → 상태: 전체(ALL) → <strong>조회</strong></li>
+      <li>결과가 표시된 상태에서 저장한 북마크릿 클릭 → <code>erp_품목코드.json</code> 다운로드</li>
+    </ol>
+  </div>
+
+  <div class="bookmarklet-box">
+    <h3>📎 ERP 데이터 추출 북마크릿</h3>
+    <p>아래 버튼을 북마크 바에 드래그하세요</p>
+    <a class="bm-link" id="bmErp" href="#">📦 ERP 추출</a>
+    <p class="bm-hint">※ 드래그가 안 되면: 북마크 추가(Ctrl+D) → 편집 → URL에 아래 코드 붙여넣기</p>
+    <details style="margin-top:10px">
+      <summary style="font-size:12px;color:#888;cursor:pointer">코드 직접 복사</summary>
+      <textarea id="erpCode" readonly style="width:100%;height:80px;font-size:10px;margin-top:6px;border:1px solid #ddd;border-radius:4px;padding:6px;resize:none;font-family:monospace"></textarea>
+    </details>
+  </div>
+
+  <div class="upload-zone" id="erpZone">
+    <input type="file" id="erpFile" accept=".json">
+    <div class="icon">📁</div>
+    <p>ERP JSON 파일을 여기에 끌어다 놓거나 클릭하여 선택</p>
+    <div class="filename" id="erpFileName"></div>
+  </div>
+  <div id="erpStatus" class="status-badge wait">⏳ 대기 중</div>
+</div>
+
+<!-- ══ STEP 3: 비교 ══ -->
+<div class="card">
+  <div class="card-title"><span class="step-badge">3</span> 비교 결과 다운로드</div>
+  <p style="font-size:13px;color:#555;margin-bottom:14px">
+    🟡 노란 셀 = PLM ↔ ERP 값 불일치 &nbsp;|&nbsp; 🟨 노란 행 전체 = PLM에만 있는 부품
+  </p>
+  <button class="btn btn-primary" id="btnCompare" disabled>🔄 비교 실행 및 xlsx 다운로드</button>
+  <div class="log-area" id="logArea"></div>
+</div>
+
+</main>
+
+<script src="lib/xlsx.min.js"></script>
+<script>
+// ─────────────────────────────────────────────
+// 북마크릿 코드 정의
+// ─────────────────────────────────────────────
+const PLM_BM = `javascript:(function(){if(typeof AUIGrid==='undefined'||typeof myGridID==='undefined'){alert('PLM 파트리스트 상세 페이지에서 실행하세요\\n(파트리스트 트리가 보여야 합니다)');return;}AUIGrid.expandAll(myGridID);var st=document.createElement('div');st.style='position:fixed;top:10px;right:10px;background:#1565c0;color:white;padding:10px 16px;border-radius:8px;z-index:99999;font-size:14px';st.textContent='PLM 데이터 추출 중...';document.body.appendChild(st);setTimeout(function(){try{var data=AUIGrid.getGridData(myGridID);var pc=(data[0]&&(data[0].erpCode||data[0].number)||'').trim();var rows=data.filter(function(r){return(r._\$depth||1)>=2;}).map(function(r){return{code:(r.erpCode||r.number||'').trim(),color:(r.color||'').trim(),qty:r.amount!=null?r.amount:(r.quantity!=null?r.quantity:0)};});var json=JSON.stringify({partCode:pc,rows:rows});var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);a.download='plm_'+pc+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);st.style.background='#2e7d32';st.textContent='✅ PLM 추출 완료! ('+rows.length+'개 부품)';}catch(e){st.style.background='#c62828';st.textContent='❌ 오류: '+e.message;}setTimeout(function(){document.body.removeChild(st);},3000);},2000);})();`;
+
+const ERP_BM = `javascript:(function(){var cells=Array.from(document.querySelectorAll('div[style*="table-cell"]')).map(function(el){var r=el.getBoundingClientRect();return{text:el.textContent.trim(),x:r.left,y:r.top,w:r.width,h:r.height};}).filter(function(c){return c.w>5&&c.h>5&&c.h<60;});if(!cells.length){alert('ERP 통합BOM 조회 결과 페이지에서 실행하세요\\n(조회 버튼 클릭 후 결과가 보이는 상태)');return;}var rg=[];cells.forEach(function(c){var g=rg.find(function(g){return Math.abs(g.y-c.y)<5;});if(g)g.cells.push(c);else rg.push({y:c.y,cells:[c]});});rg.sort(function(a,b){return a.y-b.y;});var KEYS=['품목코드','색상','정소요량','품명','소요량','단위'];var hi=-1,hc=[];for(var i=0;i<rg.length;i++){var ts=rg[i].cells.map(function(c){return c.text;});if(KEYS.filter(function(k){return ts.indexOf(k)>=0;}).length>=2){hi=i;hc=rg[i].cells.slice().sort(function(a,b){return a.x-b.x;});break;}}if(hi<0){alert('BOM 헤더를 찾을 수 없습니다.\\n통합BOM 조회 결과 화면에서 실행하세요.');return;}var header=hc.map(function(c){return c.text;});var result=[];for(var i=hi+1;i<rg.length;i++){var row=rg[i].cells.slice().sort(function(a,b){return a.x-b.x;});if(Math.abs(row.length-header.length)>3)continue;var obj={};header.forEach(function(h,idx){obj[h]=row[idx]?row[idx].text:'';});if(obj['품목코드'])result.push(obj);}if(!result.length){alert('BOM 데이터를 파싱할 수 없습니다.');return;}var pc=result[0]['품목코드']||'unknown';var json=JSON.stringify({header:header,rows:result});var st=document.createElement('div');st.style='position:fixed;top:10px;right:10px;background:#2e7d32;color:white;padding:10px 16px;border-radius:8px;z-index:99999;font-size:14px';st.textContent='✅ ERP 추출 완료! ('+result.length+'개 행)';document.body.appendChild(st);var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);a.download='erp_'+pc+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){document.body.removeChild(st);},3000);})();`;
+
+// 북마크릿 링크 설정
+document.getElementById('bmPlm').href = PLM_BM;
+document.getElementById('bmErp').href = ERP_BM;
+document.getElementById('plmCode').value = PLM_BM;
+document.getElementById('erpCode').value = ERP_BM;
+
+// ─────────────────────────────────────────────
+// 파일 업로드 처리
+// ─────────────────────────────────────────────
+let plmData = null, erpData = null;
+
+function setupUpload(zoneId, fileId, nameId, statusId, onLoad) {
+  const zone = document.getElementById(zoneId);
+  const file = document.getElementById(fileId);
+  const name = document.getElementById(nameId);
+  const stat = document.getElementById(statusId);
+
+  function handleFile(f) {
+    if (!f || !f.name.endsWith('.json')) {
+      stat.className = 'status-badge err';
+      stat.textContent = '❌ JSON 파일만 업로드 가능합니다';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        name.textContent = '📄 ' + f.name;
+        stat.className = 'status-badge ok';
+        stat.textContent = '✅ 파일 로드 완료';
+        onLoad(parsed);
+        checkReady();
+      } catch(err) {
+        stat.className = 'status-badge err';
+        stat.textContent = '❌ JSON 파싱 오류: ' + err.message;
+      }
+    };
+    reader.readAsText(f);
+  }
+
+  file.addEventListener('change', function() { handleFile(this.files[0]); });
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    handleFile(e.dataTransfer.files[0]);
+  });
+}
+
+setupUpload('plmZone','plmFile','plmFileName','plmStatus', function(d) { plmData = d; });
+setupUpload('erpZone','erpFile','erpFileName','erpStatus', function(d) { erpData = d; });
+
+function checkReady() {
+  document.getElementById('btnCompare').disabled = !(plmData && erpData);
+}
+
+// ─────────────────────────────────────────────
+// 비교 및 xlsx 생성
+// ─────────────────────────────────────────────
+const YELLOW = { patternType: 'solid', fgColor: { rgb: 'FFFFFF00' } };
+
+function log(msg) {
+  const area = document.getElementById('logArea');
+  area.classList.add('show');
+  area.textContent += msg + '\n';
+  area.scrollTop = area.scrollHeight;
+}
+
+document.getElementById('btnCompare').addEventListener('click', function() {
+  const logArea = document.getElementById('logArea');
+  logArea.textContent = '';
+  logArea.classList.add('show');
+
+  try {
+    const partCode = plmData.partCode || '';
+    const plmRows  = plmData.rows || [];
+    const header   = erpData.header || [];
+    const erpRows  = erpData.rows || [];
+
+    if (!plmRows.length) throw new Error('PLM 데이터가 비어있습니다.');
+    if (!header.length || !erpRows.length) throw new Error('ERP 데이터가 비어있습니다.');
+
+    log('품목코드: ' + partCode);
+    log('PLM 부품 수: ' + plmRows.length);
+    log('ERP 행 수: ' + erpRows.length);
+
+    const idxCode  = header.indexOf('품목코드');
+    const idxColor = header.indexOf('색상');
+    const idxQty   = header.indexOf('정소요량') >= 0 ? header.indexOf('정소요량') : header.indexOf('소요량');
+    log('컬럼 인덱스 — 품목코드:' + idxCode + ', 색상:' + idxColor + ', 정소요량:' + idxQty);
+
+    if (idxCode < 0) throw new Error("ERP 데이터에 '품목코드' 컬럼이 없습니다.");
+
+    // ERP dict 구성
+    const erpDict = {}, erpFCode = {}, erpOrder = [];
+    erpRows.forEach(function(obj) {
+      const code = String(obj['품목코드'] || '').trim();
+      if (!code || code === partCode) return;
+      const base = code.split('-R')[0].split('-r')[0];
+      erpDict[base] = obj;
+      erpFCode[base] = code;
+      erpOrder.push(base);
+    });
+
+    // 워크시트 행 배열
+    const wsData = [];
+    const styles = {}; // rowIdx -> { colIdx: fillColor }
+
+    function addRow(values, yellowCols) {
+      const ri = wsData.length;
+      wsData.push(values);
+      if (yellowCols && yellowCols.length) styles[ri] = yellowCols;
+    }
+
+    // 헤더 행
+    addRow(header, []);
+
+    // 모품목 행
+    erpRows.forEach(function(obj) {
+      if (String(obj['품목코드'] || '').trim() === partCode) {
+        addRow(header.map(function(h) { return obj[h] || ''; }), []);
+      }
+    });
+
+    const written = new Set();
+    let diffCount = 0, insertCount = 0;
+
+    plmRows.forEach(function(r) {
+      const plmBase = r.code.split('-R')[0].split('-r')[0];
+      if (erpDict[plmBase]) {
+        const eo = erpDict[plmBase];
+        written.add(plmBase);
+        const vals = header.map(function(h) { return eo[h] || ''; });
+        const yellows = [];
+
+        const erpColor = String(eo['색상'] || '').trim();
+        if (erpColor !== r.color) {
+          if (idxColor >= 0) yellows.push(idxColor);
+          log('[DIFF] ' + r.code + ' 색상: PLM=' + r.color + ' / ERP=' + erpColor);
+        }
+
+        const erpQty = parseFloat(eo['정소요량'] || eo['소요량'] || 0);
+        const plmQty = parseFloat(r.qty);
+        if (plmQty !== erpQty) {
+          if (idxQty >= 0) yellows.push(idxQty);
+          log('[DIFF] ' + r.code + ' 수량: PLM=' + r.qty + ' / ERP=' + erpQty);
+        }
+
+        addRow(vals, yellows);
+        if (yellows.length) diffCount++;
+      } else {
+        const newRow = header.map(function() { return ''; });
+        newRow[idxCode] = r.code;
+        if (idxColor >= 0) newRow[idxColor] = r.color;
+        if (idxQty >= 0)   newRow[idxQty]   = r.qty;
+        const allCols = header.map(function(_, i) { return i; });
+        addRow(newRow, allCols);
+        insertCount++;
+        log('[INSERT] PLM 신규행: ' + r.code);
+      }
+    });
+
+    // ERP only 행
+    erpOrder.forEach(function(base) {
+      if (!written.has(base)) {
+        const eo = erpDict[base];
+        addRow(header.map(function(h) { return eo[h] || ''; }), []);
+        log('[ERP ONLY] ' + erpFCode[base]);
+      }
+    });
+
+    log('완료 — 불일치 ' + diffCount + '건 / PLM신규 ' + insertCount + '건');
+
+    // SheetJS (xlsx-js-style) 워크시트 생성
+    const ws = {};
+    const range = { s: {r:0, c:0}, e: {r: wsData.length-1, c: header.length-1} };
+
+    wsData.forEach(function(row, ri) {
+      const yellowSet = new Set(styles[ri] || []);
+      const isFullYellow = yellowSet.size === header.length;
+      row.forEach(function(val, ci) {
+        const cellRef = XLSX.utils.encode_cell({r: ri, c: ci});
+        const cell = { v: val, t: 's' };
+        if (ri === 0) {
+          cell.s = { font: { bold: true }, fill: { patternType: 'solid', fgColor: { rgb: 'FFD3D3D3' } } };
+        } else if (isFullYellow || yellowSet.has(ci)) {
+          cell.s = { fill: YELLOW };
+        }
+        ws[cellRef] = cell;
+      });
+    });
+
+    ws['!ref'] = XLSX.utils.encode_range(range);
+
+    // 컬럼 너비
+    ws['!cols'] = header.map(function(h) {
+      return { wch: Math.min(Math.max(h.length + 2, 10), 30) };
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'BOM비교');
+
+    const fname = 'compare_' + partCode + '_' + Date.now() + '.xlsx';
+    XLSX.writeFile(wb, fname);
+    log('📥 파일 다운로드: ' + fname);
+
+  } catch(e) {
+    log('❌ 오류: ' + e.message);
+    const area = document.getElementById('logArea');
+    area.style.borderLeft = '3px solid #c62828';
+  }
+});
+</script>
+</body>
+</html>
