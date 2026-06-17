@@ -174,49 +174,103 @@ var BM = "javascript:(function(){" +
 "  if(w)w.focus();else alert('팝업이 차단되었습니다.\\nChrome에서 이 사이트의 팝업을 허용하세요.');return;" +
 "}" +
 
-// ── PLM 도메인: 파트리스트 자동 추출 ──
+// ── PLM 도메인: 단계별 자동 처리 ──
 "if(H.indexOf('plm.fursys.com')>=0){" +
 "var OPENER=window.opener;" +
-"var pc=(window.name||'').replace(/^mbom_code:/,'');" +
-"if(!pc)pc=sessionStorage.getItem('_mbom_pc');" +
+
+// window.name에서 데이터 읽기 (JSON 형태로 전달)
+"var mbomData={};try{mbomData=JSON.parse(window.name);}catch(e){}" +
+"var pc=mbomData.pc||sessionStorage.getItem('_mbom_pc');" +
+"var plmId=mbomData.plmId||sessionStorage.getItem('_mbom_plmId');" +
+"var plmPw=mbomData.plmPw||sessionStorage.getItem('_mbom_plmPw');" +
 "if(!pc){pc=prompt('품목코드를 입력하세요:');if(!pc)return;}" +
 "sessionStorage.setItem('_mbom_pc',pc);" +
+"if(plmId)sessionStorage.setItem('_mbom_plmId',plmId);" +
+"if(plmPw)sessionStorage.setItem('_mbom_plmPw',plmPw);" +
+
 "var T=function(msg,color){var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';d.style='position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:300px;line-height:1.5';document.body.appendChild(d);}d.style.background=color||'#1565c0';d.textContent=msg;};" +
 "var path=location.pathname;" +
-// 상세 페이지 (create)
-"if(path.indexOf('/partlist')>-1&&path.indexOf('create')>-1&&typeof AUIGrid!=='undefined'){" +
+
+// ── STEP A: 파트리스트 상세 페이지 (create) → 추출 ──
+"if(path.indexOf('/partlist')>-1&&path.indexOf('create')>-1){" +
+"  if(typeof AUIGrid==='undefined'){T('⏳ 페이지 로딩 중... 잠시 후 다시 클릭하세요','#e65100');return;}" +
 "  T('📊 트리 펼치는 중...');" +
 "  AUIGrid.expandAll(myGridID);" +
 "  setTimeout(function(){" +
 "    var data=AUIGrid.getGridData(myGridID);" +
-"    if(!data||!data.length){T('❌ 데이터 없음','#c62828');return;}" +
+"    if(!data||!data.length){T('❌ 데이터 없음 - 페이지 로딩 후 다시 클릭','#c62828');return;}" +
 "    var rows=data.filter(function(r){return(r._$depth||1)>=2;}).map(function(r){return{code:(r.erpCode||r.number||'').trim(),color:(r.color||'').trim(),qty:r.amount!=null?r.amount:(r.quantity!=null?r.quantity:0)};});" +
 "    T('✅ PLM 완료 ('+rows.length+'개)','#2e7d32');" +
 "    if(OPENER)OPENER.postMessage(JSON.stringify({type:'plm',partCode:pc,rows:rows}),'*');" +
 "    setTimeout(function(){window.close();},1500);" +
 "  },2000);return;" +
 "}" +
-// 검색 결과 페이지
-"if(path.indexOf('/partlist')>-1&&typeof AUIGrid!=='undefined'){" +
-"  T('🔍 '+pc+' 검색 중...');" +
-"  var inputs=document.querySelectorAll('input[type=text],input:not([type])');" +
-"  for(var i=0;i<inputs.length;i++){var ph=inputs[i].placeholder||'',id2=inputs[i].id||'';if(ph.indexOf('코드')>-1||ph.indexOf('code')>-1||id2.indexOf('number')>-1){var ns=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;ns.call(inputs[i],pc);inputs[i].dispatchEvent(new Event('input',{bubbles:true}));inputs[i].dispatchEvent(new Event('change',{bubbles:true}));break;}}" +
-"  var clr=document.querySelector('i.clearUser[data-target=creator]');if(clr)clr.click();" +
-"  setTimeout(function(){" +
-"    var btns=document.querySelectorAll('button,a,div[class*=btn]');for(var i=0;i<btns.length;i++){if(btns[i].textContent.trim()==='조회'){btns[i].click();break;}}" +
-"    setTimeout(function(){" +
-"      if(typeof AUIGrid==='undefined'){T('❌ AUIGrid 없음','#c62828');return;}" +
-"      var data=AUIGrid.getGridData(myGridID),oid=null;" +
-"      for(var i=0;i<data.length;i++){var code=(data[i].erpCode||data[i].number||'').trim();if(code===pc){oid=data[i].oid||null;break;}}" +
-"      if(!oid){T('❌ '+pc+' 없음','#c62828');return;}" +
-"      T('📂 상세 페이지 이동...');" +
-"      location.href='https://plm.fursys.com/Windchill/platform/partlist/create?oid='+oid;" +
-"    },3500);" +
-"  },800);return;" +
+
+// ── STEP B: 파트리스트 검색 결과 페이지 → OID 찾아 상세 이동 ──
+"if(path.indexOf('/partlist')>-1&&path.indexOf('create')<0){" +
+"  if(typeof AUIGrid==='undefined'){T('⏳ 페이지 로딩 중... 잠시 후 다시 클릭하세요','#e65100');return;}" +
+"  T('🔍 '+pc+' 결과에서 OID 찾는 중...');" +
+"  var data=AUIGrid.getGridData(myGridID),oid=null;" +
+"  for(var i=0;i<data.length;i++){var code=(data[i].erpCode||data[i].number||'').trim();if(code===pc){oid=data[i].oid||null;break;}}" +
+"  if(!oid){T('❌ '+pc+' 를 찾을 수 없습니다','#c62828');return;}" +
+"  T('📂 파트리스트 상세 페이지 이동...');" +
+"  location.href='https://plm.fursys.com/Windchill/platform/partlist/create?oid='+oid;" +
+"  return;" +
 "}" +
-// 기타 PLM 페이지 → 파트리스트로 이동
-"T('🔀 파트리스트 페이지로 이동...');" +
-"location.href='https://plm.fursys.com/Windchill/platform/partlist';" +
+
+// ── STEP C: PLM 메인 페이지 → 로그인 처리 + BOM 메뉴 클릭 ──
+"if(path.indexOf('/platform/main')>-1||path==='/'||path.indexOf('/platform')>-1){" +
+
+// 로그인 팝업 감지 및 처리
+"  var loginPw=document.querySelector('input[type=password]');" +
+"  if(loginPw){" +
+"    T('🔐 로그인 중...');" +
+"    var loginId=document.querySelector('input[type=text],input:not([type]):not([type=password])');" +
+"    if(loginId&&plmId){loginId.value=plmId;loginId.dispatchEvent(new Event('input',{bubbles:true}));}" +
+"    loginPw.value=plmPw||'';loginPw.dispatchEvent(new Event('input',{bubbles:true}));" +
+"    setTimeout(function(){" +
+"      var loginBtns=['로그인','Login','로 그 인','확인','OK'];" +
+"      var btns=document.querySelectorAll('button,input[type=submit],a.btn,a.button');" +
+"      for(var i=0;i<btns.length;i++){var t=btns[i].textContent.trim()||btns[i].value||'';for(var j=0;j<loginBtns.length;j++){if(t.indexOf(loginBtns[j])>-1){btns[i].click();T('🔐 로그인 버튼 클릭 - 완료 후 다시 클릭하세요','#e65100');return;}}}" +
+"      T('⚠️ 로그인 버튼을 찾을 수 없습니다. 수동으로 로그인 후 다시 클릭하세요.','#e65100');" +
+"    },400);return;" +
+"  }" +
+
+// BOM 메뉴 클릭
+"  var bomMenu=null;" +
+"  var spans=document.querySelectorAll('span.title');" +
+"  for(var i=0;i<spans.length;i++){if(spans[i].textContent.trim()==='BOM'){bomMenu=spans[i];break;}}" +
+"  if(!bomMenu){T('⏳ 페이지 로딩 중... 잠시 후 다시 클릭하세요','#e65100');return;}" +
+"  T('📂 BOM 메뉴 클릭...');" +
+"  bomMenu.click();" +
+"  setTimeout(function(){" +
+"    var spans2=document.querySelectorAll('span.title');" +
+"    var partlistMenu=null;" +
+"    for(var i=0;i<spans2.length;i++){if(spans2[i].textContent.trim()==='PARTLIST 관리'){partlistMenu=spans2[i];break;}}" +
+"    if(!partlistMenu){T('❌ PARTLIST 관리 메뉴를 찾을 수 없습니다','#c62828');return;}" +
+"    T('📋 PARTLIST 관리 클릭...');" +
+"    partlistMenu.click();" +
+
+// PARTLIST 페이지 로드 후 품목코드 입력
+"    setTimeout(function(){" +
+"      T('🔍 품목코드 입력 중...');" +
+"      var erpInput=document.querySelector('input[name=erpCode]');" +
+"      if(!erpInput){T('❌ 품목코드 입력란을 찾을 수 없습니다','#c62828');return;}" +
+"      var ns=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;" +
+"      ns.call(erpInput,pc);erpInput.dispatchEvent(new Event('input',{bubbles:true}));erpInput.dispatchEvent(new Event('change',{bubbles:true}));" +
+"      var clr=document.querySelector('i.clearUser[data-target=creator]');if(clr)clr.click();" +
+"      setTimeout(function(){" +
+"        var searchBtn=document.getElementById('searchBtn');" +
+"        if(!searchBtn){T('❌ 조회 버튼을 찾을 수 없습니다','#c62828');return;}" +
+"        T('🔍 조회 클릭...');" +
+"        searchBtn.click();" +
+"        T('✅ 조회 완료! 결과 로딩 후 다시 북마크릿 클릭하세요','#2e7d32');" +
+"      },800);" +
+"    },3000);" +
+"  },1000);return;" +
+"}" +
+
+"T('⚠️ PLM 메인 페이지(plm.fursys.com/Windchill/platform/main)에서 실행하세요','#e65100');" +
 "return;}" +
 
 // ── ERP 도메인: 통합BOM 자동 조회 + 추출 ──
@@ -301,9 +355,11 @@ document.getElementById('btnCheck').addEventListener('click', function(){
   setStep('erp','run','EP→ERP 탭이 열렸습니다','① EP탭 북마크릿 클릭 → ② ERP탭 북마크릿 클릭');
   setStep('cmp','wait','비교 대기','PLM + ERP 완료 후 자동 실행');
 
-  // PLM 탭 오픈
-  var plmWin = window.open('https://plm.fursys.com/Windchill/platform/partlist','_plm_mbom');
-  if(plmWin) plmWin.name = 'mbom_code:'+pc;
+  // PLM 탭 오픈 (ID/PW/품목코드 모두 window.name으로 전달)
+  var plmId = document.getElementById('plmId').value.trim();
+  var plmPw = document.getElementById('plmPw').value;
+  var plmWin = window.open('https://plm.fursys.com/Windchill/platform/main','_plm_mbom');
+  if(plmWin) plmWin.name = JSON.stringify({pc:pc, plmId:plmId, plmPw:plmPw});
 
   // ERP 탭 오픈 (EP → ERP Korea 경유)
   var erpWin = window.open('https://ep.fursys.com/v3/main.do','_erp_mbom');
