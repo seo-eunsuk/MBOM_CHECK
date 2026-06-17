@@ -6,458 +6,386 @@
 <title>MBOM Check</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#f0f2f5;min-height:100vh}
-header{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between}
-header h1{font-size:20px;font-weight:700;letter-spacing:-.3px}
-header span{font-size:12px;opacity:.75}
-main{max-width:560px;margin:28px auto;padding:0 14px 60px}
+body{font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:#1a237e;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:480px}
 
-.card{background:#fff;border-radius:12px;padding:22px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1px solid #e3e8ef}
+/* 헤더 */
+.hdr{color:#fff;text-align:center;padding:14px 0 18px}
+.hdr h1{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.hdr p{font-size:11px;opacity:.7;margin-top:4px}
 
-/* CHECK 폼 */
-.check-form{display:flex;gap:10px;align-items:stretch}
-.check-form input{flex:1;padding:12px 16px;border:2px solid #c5cae9;border-radius:8px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
-.check-form input:focus{border-color:#1565c0}
-.check-form input::placeholder{color:#aaa}
-#btnCheck{padding:12px 24px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s}
-#btnCheck:hover:not(:disabled){background:#0d47a1}
-#btnCheck:disabled{background:#90a4ae;cursor:not-allowed}
+/* 카드 */
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+/* 폼 */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase}
+.field input{width:100%;padding:10px 13px;border:1.5px solid #dde;border-radius:7px;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;background:#fafbff}
+.field input:focus{border-color:#3949ab;background:#fff}
+.field input::placeholder{color:#bbb}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* CHECK 버튼 */
+#btnCheck{width:100%;padding:13px;background:linear-gradient(135deg,#1565c0,#283593);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:opacity .15s;margin-top:4px}
+#btnCheck:hover:not(:disabled){opacity:.9}
+#btnCheck:disabled{opacity:.5;cursor:not-allowed}
 
 /* 진행 상태 */
-.progress{margin-top:18px;display:none}
+.progress{display:none;margin-top:16px}
 .progress.show{display:block}
-.step-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0}
-.step-row:last-child{border-bottom:none}
-.step-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:#e8eaf6;color:#5c6bc0}
-.step-icon.spin{animation:spin 1s linear infinite}
-.step-icon.done{background:#e8f5e9;color:#2e7d32}
-.step-icon.err{background:#ffebee;color:#c62828}
-@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.step-info{flex:1}
-.step-title{font-size:13px;font-weight:600;color:#333}
-.step-desc{font-size:11px;color:#888;margin-top:2px}
-.step-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
-.badge-wait{background:#fff3e0;color:#e65100}
-.badge-run{background:#e3f2fd;color:#1565c0}
-.badge-done{background:#e8f5e9;color:#2e7d32}
-.badge-err{background:#ffebee;color:#c62828}
+.step{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:6px;background:#f8f9ff;border:1px solid #e8eaf6;transition:all .2s}
+.step.active{background:#e3f2fd;border-color:#90caf9}
+.step.done{background:#e8f5e9;border-color:#a5d6a7}
+.step.err{background:#ffebee;border-color:#ef9a9a}
+.step-ico{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.step-ico.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.step-txt{flex:1}
+.step-txt strong{display:block;font-size:12px;font-weight:700;color:#333}
+.step-txt span{display:block;font-size:11px;color:#777;margin-top:1px}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap}
+.badge-w{background:#fff3e0;color:#e65100}
+.badge-r{background:#e3f2fd;color:#1565c0}
+.badge-d{background:#e8f5e9;color:#2e7d32}
+.badge-e{background:#ffebee;color:#c62828}
 
 /* 다운로드 버튼 */
-#dlBtn{display:none;width:100%;padding:14px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:background .2s}
+#dlBtn{display:none;width:100%;padding:12px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .15s}
 #dlBtn:hover{background:#1b5e20}
 
-/* 북마크릿 섹션 */
-.bm-section{margin-top:16px}
-.bm-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 0;user-select:none}
-.bm-header h3{font-size:13px;font-weight:700;color:#555}
-.bm-header .toggle{font-size:12px;color:#999;transition:transform .2s}
-.bm-body{display:none;padding-top:8px}
-.bm-body.open{display:block}
-.bm-item{background:#f8f9ff;border:1px solid #c5cae9;border-radius:8px;padding:14px;margin-bottom:10px}
-.bm-item h4{font-size:12px;font-weight:700;color:#3949ab;margin-bottom:6px}
-.bm-item p{font-size:11px;color:#666;line-height:1.7;margin-bottom:10px}
-.bm-link{display:inline-block;padding:7px 16px;background:#3949ab;color:#fff!important;text-decoration:none;border-radius:6px;font-size:12px;font-weight:600;cursor:grab;border:2px dashed transparent;transition:all .15s}
-.bm-link:hover{background:#283593}
-.bm-hint{font-size:10px;color:#999;margin-top:6px}
-details summary{font-size:11px;color:#888;cursor:pointer;margin-top:8px}
-details textarea{width:100%;height:70px;font-size:10px;margin-top:4px;border:1px solid #ddd;border-radius:4px;padding:6px;resize:none;font-family:monospace;color:#333}
-
-.howto{background:#fffde7;border-left:3px solid #f9a825;padding:10px 14px;border-radius:0 6px 6px 0;margin-top:12px}
-.howto p{font-size:12px;color:#5d4037;line-height:1.8}
-.howto strong{color:#e65100}
+/* 북마크릿 안내 */
+.bm-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px;color:#fff}
+.bm-card h3{font-size:12px;font-weight:700;opacity:.9;margin-bottom:12px;letter-spacing:.3px}
+.bm-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:12px;opacity:.85;line-height:1.6}
+.bm-step .num{background:rgba(255,255,255,.2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.bm-link{display:inline-block;padding:8px 18px;background:#fff;color:#1a237e;text-decoration:none;border-radius:7px;font-size:13px;font-weight:700;cursor:grab;margin:4px 0 2px;border:2px dashed transparent;transition:all .15s}
+.bm-link:hover{box-shadow:0 0 0 3px rgba(255,255,255,.4)}
+.bm-hint{font-size:10px;opacity:.6;margin-top:4px}
+details summary{font-size:10px;opacity:.6;cursor:pointer;margin-top:6px}
+details textarea{width:100%;height:65px;font-size:9px;margin-top:4px;border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:6px;resize:none;font-family:monospace;background:rgba(0,0,0,.3);color:#fff}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<header>
+<div class="hdr">
   <h1>🔍 MBOM Check</h1>
-  <span>PLM vs ERP 자동 비교</span>
-</header>
+  <p>PLM 파트리스트 vs ERP 통합BOM 자동 비교</p>
+</div>
 
-<main>
-
-<!-- 메인 카드 -->
+<!-- 입력 카드 -->
 <div class="card">
-  <div class="check-form">
-    <input id="partCode" type="text" placeholder="품목코드 입력 (예: IBG20CN02B)" autocomplete="off" spellcheck="false">
-    <button id="btnCheck">CHECK</button>
+  <div class="row2">
+    <div class="field">
+      <label>PLM 아이디</label>
+      <input id="plmId" type="text" placeholder="Windows 계정 ID" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>PLM 비밀번호</label>
+      <input id="plmPw" type="password" placeholder="비밀번호">
+    </div>
   </div>
+  <div class="field">
+    <label>품목코드</label>
+    <input id="partCode" type="text" placeholder="예: IBG20CN02B" autocomplete="off" spellcheck="false">
+  </div>
+  <button id="btnCheck">▶ CHECK</button>
 
   <!-- 진행 상태 -->
   <div class="progress" id="progress">
-    <div class="step-row">
-      <div class="step-icon" id="plmIcon">📋</div>
-      <div class="step-info">
-        <div class="step-title">PLM 파트리스트</div>
-        <div class="step-desc" id="plmDesc">PLM 탭에서 북마크릿을 클릭하세요</div>
-      </div>
-      <span class="step-badge badge-wait" id="plmBadge">대기</span>
+    <div class="step" id="sPlm">
+      <span class="step-ico">📋</span>
+      <div class="step-txt"><strong id="plmTitle">PLM 파트리스트</strong><span id="plmDesc">PLM 탭에서 북마크릿 클릭</span></div>
+      <span class="badge badge-w" id="plmBadge">대기</span>
     </div>
-    <div class="step-row">
-      <div class="step-icon" id="erpIcon">📦</div>
-      <div class="step-info">
-        <div class="step-title">ERP 통합BOM</div>
-        <div class="step-desc" id="erpDesc">ERP 탭에서 북마크릿을 클릭하세요</div>
-      </div>
-      <span class="step-badge badge-wait" id="erpBadge">대기</span>
+    <div class="step" id="sErp">
+      <span class="step-ico">📦</span>
+      <div class="step-txt"><strong id="erpTitle">ERP 통합BOM</strong><span id="erpDesc">ERP 탭에서 북마크릿 클릭</span></div>
+      <span class="badge badge-w" id="erpBadge">대기</span>
     </div>
-    <div class="step-row">
-      <div class="step-icon" id="cmpIcon">🔄</div>
-      <div class="step-info">
-        <div class="step-title">비교 및 xlsx 생성</div>
-        <div class="step-desc" id="cmpDesc">PLM + ERP 완료 후 자동 실행</div>
-      </div>
-      <span class="step-badge badge-wait" id="cmpBadge">대기</span>
+    <div class="step" id="sCmp">
+      <span class="step-ico">🔄</span>
+      <div class="step-txt"><strong>비교 및 xlsx 생성</strong><span id="cmpDesc">양쪽 완료 후 자동 실행</span></div>
+      <span class="badge badge-w" id="cmpBadge">대기</span>
     </div>
-  </div>
-
-  <button id="dlBtn">📥 결과 다운로드 (.xlsx)</button>
-</div>
-
-<!-- 북마크릿 설정 -->
-<div class="card">
-  <div class="bm-header" onclick="toggleBm()">
-    <h3>📌 북마크릿 설정 (처음 한 번만)</h3>
-    <span class="toggle" id="bmToggle">▼ 펼치기</span>
-  </div>
-  <div class="bm-body" id="bmBody">
-
-    <div class="howto">
-      <p>각 버튼을 <strong>북마크 바에 드래그</strong>하여 저장하세요.<br>
-      드래그가 안 되면: 버튼 우클릭 → "다른 이름으로 링크 저장" 또는<br>
-      북마크 추가(Ctrl+D) → URL 자리에 아래 코드 붙여넣기</p>
-    </div>
-
-    <div class="bm-item" style="margin-top:12px">
-      <h4>① EP 메인페이지 북마크릿 (MBOM Check 열기)</h4>
-      <p>EP 포털 (ep.fursys.com) 에서 클릭하면<br>
-      MBOM Check 창이 자동으로 열립니다.</p>
-      <a class="bm-link" id="bmEP" href="#">🚀 MBOM 열기</a>
-      <p class="bm-hint">※ EP 메인페이지에서 클릭하세요</p>
-      <details><summary>코드 직접 복사</summary>
-        <textarea id="epCode" readonly></textarea></details>
-    </div>
-
-    <div class="bm-item">
-      <h4>② PLM 북마크릿 (파트리스트 자동 추출)</h4>
-      <p>CHECK 클릭 후 자동으로 열린 PLM 탭에서 클릭하면<br>
-      파트리스트 조회 → 상세 → 추출까지 자동으로 진행됩니다.</p>
-      <a class="bm-link" id="bmPLM" href="#">📋 PLM 추출</a>
-      <p class="bm-hint">※ PLM 탭이 열리면 한 번만 클릭하세요</p>
-      <details><summary>코드 직접 복사</summary>
-        <textarea id="plmCode" readonly></textarea></details>
-    </div>
-
-    <div class="bm-item">
-      <h4>③ ERP 북마크릿 (통합BOM 자동 추출)</h4>
-      <p>CHECK 클릭 후 자동으로 열린 ERP 탭에서 클릭하면<br>
-      통합BOM 조회 → 추출까지 자동으로 진행됩니다.</p>
-      <a class="bm-link" id="bmERP" href="#">📦 ERP 추출</a>
-      <p class="bm-hint">※ ERP Korea 탭이 열리면 한 번만 클릭하세요</p>
-      <details><summary>코드 직접 복사</summary>
-        <textarea id="erpBmCode" readonly></textarea></details>
-    </div>
-
+    <button id="dlBtn">📥 xlsx 다운로드</button>
   </div>
 </div>
 
-</main>
+<!-- 북마크릿 안내 -->
+<div class="bm-card">
+  <h3>📌 북마크릿 설정 (처음 한 번만)</h3>
+
+  <div class="bm-step">
+    <span class="num">1</span>
+    <div>아래 버튼을 <strong>Chrome 북마크 바</strong>에 드래그해서 저장하세요.<br>
+    (북마크 바가 안 보이면 Ctrl+Shift+B)</div>
+  </div>
+
+  <a class="bm-link" id="bmAll" href="#">🔍 MBOM Check</a>
+  <p class="bm-hint">EP / PLM / ERP 모든 페이지에서 사용하는 하나의 북마크릿</p>
+  <details><summary>코드 직접 복사하기</summary>
+    <textarea id="bmCode" readonly></textarea></details>
+
+  <div style="border-top:1px solid rgba(255,255,255,.15);margin:12px 0"></div>
+
+  <div class="bm-step"><span class="num">2</span><div>사용 방법: <strong>EP 메인페이지</strong>에서 클릭 → 이 창이 팝업으로 열림</div></div>
+  <div class="bm-step"><span class="num">3</span><div>CHECK 클릭 후 자동으로 열리는 <strong>PLM 탭</strong>에서 같은 북마크릿 클릭</div></div>
+  <div class="bm-step"><span class="num">4</span><div>자동으로 열리는 <strong>ERP 탭</strong>에서 같은 북마크릿 클릭</div></div>
+  <div class="bm-step"><span class="num">5</span><div>xlsx 자동 다운로드 🎉</div></div>
+</div>
+
+</div><!-- /wrap -->
 
 <script src="lib/xlsx.min.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════
-// 북마크릿 코드 정의
-// ═══════════════════════════════════════════════════════
-var VERCEL_URL = location.origin; // 배포된 Vercel URL
+// ─── 북마크릿 코드 (EP / PLM / ERP 도메인 자동 감지) ───────────────────────
+var VERCEL = location.origin;
 
-// ① EP 북마크릿: MBOM Check 팝업 열기
-var EP_BM = "javascript:(function(){var w=window.open('" + VERCEL_URL + "','mbomcheck','width=580,height=520,top=100,left=100,resizable=yes');if(w)w.focus();else alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요.');})();";
+var BM = "javascript:(function(){" +
+"var H=location.hostname;" +
 
-// ② PLM 북마크릿: 자동 조회 + 추출 + postMessage
-var PLM_BM = "javascript:(function(){" +
+// ── EP 도메인 ──
+"if(H.indexOf('ep.fursys.com')>=0){" +
+// window.opener 있으면 = Vercel이 열어준 ERP용 탭 → ERP Korea 이동
+"  if(window.opener){" +
+"    var pc2=(window.name||'').replace(/^mbom_code:/,'');" +
+"    var T2=function(msg,color){var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';d.style='position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:300px;line-height:1.5';document.body.appendChild(d);}d.style.background=color||'#1565c0';d.textContent=msg;};" +
+"    T2('🔀 ERP Korea 접속 중...');" +
+"    var mb=document.querySelector('button.menu[onclick*=\"main_menu\"]');" +
+"    if(!mb){T2('❌ 메뉴 버튼을 찾을 수 없습니다','#c62828');return;}" +
+"    mb.click();" +
+"    setTimeout(function(){" +
+"      var spans=document.querySelectorAll('span.menu_name');" +
+"      var found=false;" +
+"      for(var i=0;i<spans.length;i++){" +
+"        if(spans[i].textContent.trim()==='ERP Korea'){" +
+"          T2('✅ ERP Korea 클릭 → 이동 중...');" +
+"          spans[i].click();" + // 탭이 erp.fursys.com으로 이동 (window.name, window.opener 유지)
+"          found=true;break;" +
+"        }" +
+"      }" +
+"      if(!found)T2('❌ ERP Korea 메뉴를 찾을 수 없습니다. 메뉴가 열린 후 다시 시도하세요.','#c62828');" +
+"    },800);" +
+"    return;" +
+"  }" +
+// window.opener 없으면 = 유저가 직접 EP에서 클릭 → Vercel 팝업 열기
+"  var w=window.open('" + VERCEL + "','_mbomcheck','width=500,height=580,resizable=yes,scrollbars=yes');" +
+"  if(w)w.focus();else alert('팝업이 차단되었습니다.\\nChrome에서 이 사이트의 팝업을 허용하세요.');return;" +
+"}" +
+
+// ── PLM 도메인: 파트리스트 자동 추출 ──
+"if(H.indexOf('plm.fursys.com')>=0){" +
 "var OPENER=window.opener;" +
 "var pc=(window.name||'').replace(/^mbom_code:/,'');" +
-"if(!pc){pc=sessionStorage.getItem('_mbom_pc');}" +
+"if(!pc)pc=sessionStorage.getItem('_mbom_pc');" +
 "if(!pc){pc=prompt('품목코드를 입력하세요:');if(!pc)return;}" +
 "sessionStorage.setItem('_mbom_pc',pc);" +
-"var toast=function(msg,color){" +
-"  var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';" +
-"  d.style='position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:320px;line-height:1.5';document.body.appendChild(d);}" +
-"  d.style.background=color||'#1565c0';d.textContent=msg;" +
-"};" +
+"var T=function(msg,color){var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';d.style='position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:300px;line-height:1.5';document.body.appendChild(d);}d.style.background=color||'#1565c0';d.textContent=msg;};" +
 "var path=location.pathname;" +
+// 상세 페이지 (create)
 "if(path.indexOf('/partlist')>-1&&path.indexOf('create')>-1&&typeof AUIGrid!=='undefined'){" +
-"  toast('📊 트리 펼치는 중...',);" +
+"  T('📊 트리 펼치는 중...');" +
 "  AUIGrid.expandAll(myGridID);" +
 "  setTimeout(function(){" +
 "    var data=AUIGrid.getGridData(myGridID);" +
-"    if(!data||!data.length){toast('❌ 데이터가 없습니다','#c62828');return;}" +
+"    if(!data||!data.length){T('❌ 데이터 없음','#c62828');return;}" +
 "    var rows=data.filter(function(r){return(r._$depth||1)>=2;}).map(function(r){return{code:(r.erpCode||r.number||'').trim(),color:(r.color||'').trim(),qty:r.amount!=null?r.amount:(r.quantity!=null?r.quantity:0)};});" +
-"    toast('✅ PLM 추출 완료 ('+rows.length+'개)','#2e7d32');" +
+"    T('✅ PLM 완료 ('+rows.length+'개)','#2e7d32');" +
 "    if(OPENER)OPENER.postMessage(JSON.stringify({type:'plm',partCode:pc,rows:rows}),'*');" +
-"    setTimeout(function(){window.close();},1200);" +
-"  },2000);" +
-"  return;" +
+"    setTimeout(function(){window.close();},1500);" +
+"  },2000);return;" +
 "}" +
+// 검색 결과 페이지
 "if(path.indexOf('/partlist')>-1&&typeof AUIGrid!=='undefined'){" +
-"  toast('🔍 '+pc+' 검색 중...');" +
+"  T('🔍 '+pc+' 검색 중...');" +
 "  var inputs=document.querySelectorAll('input[type=text],input:not([type])');" +
-"  var filled=false;" +
-"  for(var i=0;i<inputs.length;i++){" +
-"    var ph=inputs[i].placeholder||'',id2=inputs[i].id||'';" +
-"    if(ph.indexOf('코드')>-1||ph.indexOf('code')>-1||id2.indexOf('number')>-1||id2.indexOf('code')>-1){" +
-"      var ns=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;" +
-"      ns.call(inputs[i],pc);inputs[i].dispatchEvent(new Event('input',{bubbles:true}));inputs[i].dispatchEvent(new Event('change',{bubbles:true}));filled=true;break;" +
-"    }" +
-"  }" +
-"  if(!filled&&inputs[0]){var ns=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;ns.call(inputs[0],pc);inputs[0].dispatchEvent(new Event('input',{bubbles:true}));inputs[0].dispatchEvent(new Event('change',{bubbles:true}));}" +
+"  for(var i=0;i<inputs.length;i++){var ph=inputs[i].placeholder||'',id2=inputs[i].id||'';if(ph.indexOf('코드')>-1||ph.indexOf('code')>-1||id2.indexOf('number')>-1){var ns=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;ns.call(inputs[i],pc);inputs[i].dispatchEvent(new Event('input',{bubbles:true}));inputs[i].dispatchEvent(new Event('change',{bubbles:true}));break;}}" +
 "  var clr=document.querySelector('i.clearUser[data-target=creator]');if(clr)clr.click();" +
 "  setTimeout(function(){" +
-"    var btns=document.querySelectorAll('button,a,div[class*=btn]');" +
-"    for(var i=0;i<btns.length;i++){if(btns[i].textContent.trim()==='조회'){btns[i].click();break;}}" +
+"    var btns=document.querySelectorAll('button,a,div[class*=btn]');for(var i=0;i<btns.length;i++){if(btns[i].textContent.trim()==='조회'){btns[i].click();break;}}" +
 "    setTimeout(function(){" +
-"      toast('📋 결과 확인 중...');" +
-"      if(typeof AUIGrid==='undefined'){toast('❌ AUIGrid 없음','#c62828');return;}" +
+"      if(typeof AUIGrid==='undefined'){T('❌ AUIGrid 없음','#c62828');return;}" +
 "      var data=AUIGrid.getGridData(myGridID),oid=null;" +
 "      for(var i=0;i<data.length;i++){var code=(data[i].erpCode||data[i].number||'').trim();if(code===pc){oid=data[i].oid||null;break;}}" +
-"      if(!oid){toast('❌ '+pc+' 를 찾을 수 없습니다','#c62828');return;}" +
-"      toast('📂 파트리스트 상세 이동...');" +
+"      if(!oid){T('❌ '+pc+' 없음','#c62828');return;}" +
+"      T('📂 상세 페이지 이동...');" +
 "      location.href='https://plm.fursys.com/Windchill/platform/partlist/create?oid='+oid;" +
 "    },3500);" +
-"  },800);" +
-"  return;" +
+"  },800);return;" +
 "}" +
-"toast('🔀 파트리스트 페이지로 이동...');" +
+// 기타 PLM 페이지 → 파트리스트로 이동
+"T('🔀 파트리스트 페이지로 이동...');" +
 "location.href='https://plm.fursys.com/Windchill/platform/partlist';" +
-"})();";
+"return;}" +
 
-// ③ ERP 북마크릿: 통합BOM 자동 조회 + 추출 + postMessage
-var ERP_BM = "javascript:(function(){" +
+// ── ERP 도메인: 통합BOM 자동 조회 + 추출 ──
+"if(H.indexOf('erp.fursys.com')>=0){" +
 "var OPENER=window.opener;" +
 "var pc=(window.name||'').replace(/^mbom_code:/,'');" +
 "if(!pc)pc=sessionStorage.getItem('_mbom_pc');" +
 "if(!pc){pc=prompt('품목코드:');if(!pc)return;}" +
 "sessionStorage.setItem('_mbom_pc',pc);" +
-"var toast=function(msg,color){" +
-"  var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';" +
-"  d.style='position:fixed;bottom:24px;right:24px;padding:12px 18px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:320px;line-height:1.5';document.body.appendChild(d);}" +
-"  d.style.background=color||'#1565c0';d.textContent=msg;" +
-"};" +
-"function clickText(text,minY){" +
-"  minY=minY||0;" +
-"  var els=document.querySelectorAll('div[style*=table-cell]');" +
-"  for(var i=0;i<els.length;i++){" +
-"    if(els[i].textContent.trim()===text){" +
-"      var r=els[i].getBoundingClientRect();" +
-"      if(r.width>0&&r.top+r.height/2>minY){" +
-"        var x=r.left+r.width/2,y=r.top+r.height/2;" +
-"        ['mouseover','mousedown','mouseup','click'].forEach(function(t){els[i].dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,view:window,clientX:x,clientY:y}));});" +
-"        return {found:true,x:x,y:y};" +
-"      }" +
-"    }" +
-"  }" +
-"  return {found:false};" +
-"}" +
+"var T=function(msg,color){var d=document.getElementById('_mbomT');if(!d){d=document.createElement('div');d.id='_mbomT';d.style='position:fixed;bottom:20px;right:20px;padding:11px 16px;border-radius:8px;color:#fff;font-size:13px;font-family:sans-serif;z-index:999999;box-shadow:0 4px 16px rgba(0,0,0,.35);max-width:300px;line-height:1.5';document.body.appendChild(d);}d.style.background=color||'#1565c0';d.textContent=msg;};" +
+"function clickXY(x,y){['mouseover','mousedown','mouseup','click'].forEach(function(t){document.elementFromPoint(x,y)&&document.elementFromPoint(x,y).dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,view:window,clientX:x,clientY:y}));});}" +
+"function findText(text,minY){minY=minY||0;var els=document.querySelectorAll('div[style*=table-cell]');for(var i=0;i<els.length;i++){if(els[i].textContent.trim()===text){var r=els[i].getBoundingClientRect();if(r.width>0&&r.top+r.height/2>minY)return{found:true,el:els[i],x:r.left+r.width/2,y:r.top+r.height/2};}}return{found:false};}" +
 "function extractGrid(){" +
-"  var cells=Array.from(document.querySelectorAll('div[style*=table-cell]')).map(function(el){" +
-"    var r=el.getBoundingClientRect();return{text:el.textContent.trim(),x:r.left,y:r.top,w:r.width,h:r.height};" +
-"  }).filter(function(c){return c.w>5&&c.h>5&&c.h<60;});" +
-"  if(!cells.length)return null;" +
+"  var cells=Array.from(document.querySelectorAll('div[style*=table-cell]')).map(function(el){var r=el.getBoundingClientRect();return{text:el.textContent.trim(),x:r.left,y:r.top,w:r.width,h:r.height};}).filter(function(c){return c.w>5&&c.h>5&&c.h<60;});" +
 "  var rg=[];cells.forEach(function(c){var g=rg.find(function(g){return Math.abs(g.y-c.y)<5;});if(g)g.cells.push(c);else rg.push({y:c.y,cells:[c]});});rg.sort(function(a,b){return a.y-b.y;});" +
 "  var KEYS=['품목코드','색상','정소요량','품명','소요량'];var hi=-1,hc=[];" +
 "  for(var i=0;i<rg.length;i++){var ts=rg[i].cells.map(function(c){return c.text;});if(KEYS.filter(function(k){return ts.indexOf(k)>=0;}).length>=2){hi=i;hc=rg[i].cells.slice().sort(function(a,b){return a.x-b.x;});break;}}" +
 "  if(hi<0)return null;" +
-"  var header=hc.map(function(c){return c.text;});var result=[];" +
-"  for(var i=hi+1;i<rg.length;i++){var row=rg[i].cells.slice().sort(function(a,b){return a.x-b.x;});if(Math.abs(row.length-header.length)>3)continue;var obj={};header.forEach(function(h,idx){obj[h]=row[idx]?row[idx].text:'';});if(obj['품목코드'])result.push(obj);}" +
-"  if(!result.length)return null;" +
-"  return{header:header,rows:result};" +
+"  var header=hc.map(function(c){return c.text;});var rows=[];" +
+"  for(var i=hi+1;i<rg.length;i++){var row=rg[i].cells.slice().sort(function(a,b){return a.x-b.x;});if(Math.abs(row.length-header.length)>3)continue;var obj={};header.forEach(function(h,idx){obj[h]=row[idx]?row[idx].text:'';});if(obj['품목코드'])rows.push(obj);}" +
+"  return rows.length?{header:header,rows:rows}:null;" +
 "}" +
-"function tryExtract(){" +
-"  var data=extractGrid();" +
-"  if(data){" +
-"    toast('✅ ERP 추출 완료 ('+data.rows.length+'개)','#2e7d32');" +
-"    if(OPENER)OPENER.postMessage(JSON.stringify({type:'erp',partCode:pc,data:data}),'*');" +
-"    setTimeout(function(){window.close();},1200);" +
-"    return true;" +
-"  }" +
-"  return false;" +
-"}" +
-"if(tryExtract())return;" +
-"toast('🔀 통합BOM 메뉴 이동 중...');" +
-"var r1=clickText('생산관리');" +
-"if(!r1.found){toast('❌ 생산관리 메뉴를 찾을 수 없습니다','#c62828');return;}" +
+// 이미 결과 있으면 바로 추출
+"var existing=extractGrid();" +
+"if(existing){T('✅ ERP 완료 ('+existing.rows.length+'개)','#2e7d32');if(OPENER)OPENER.postMessage(JSON.stringify({type:'erp',partCode:pc,data:existing}),'*');setTimeout(function(){window.close();},1500);return;}" +
+// 없으면 메뉴 탐색
+"T('🔀 통합BOM 메뉴로 이동...');" +
+"var r1=findText('생산관리');" +
+"if(!r1.found){T('❌ 생산관리 없음 - ERP 메인화면에서 실행하세요','#c62828');return;}" +
+"clickXY(r1.x,r1.y);" +
 "setTimeout(function(){" +
-"  var r2=clickText('BOM관리',r1.y);" +
-"  if(!r2.found){toast('❌ BOM관리 메뉴를 찾을 수 없습니다','#c62828');return;}" +
+"  var r2=findText('BOM관리',r1.y);" +
+"  if(!r2.found){T('❌ BOM관리 없음','#c62828');return;}" +
+"  clickXY(r2.x,r2.y);" +
 "  setTimeout(function(){" +
-"    var r3=clickText('통합BOM 관리',r2.y);" +
-"    if(!r3.found){toast('❌ 통합BOM 관리 메뉴를 찾을 수 없습니다','#c62828');return;}" +
-"    toast('🔍 '+pc+' 조회 중...');" +
+"    var r3=findText('통합BOM 관리',r2.y);" +
+"    if(!r3.found){T('❌ 통합BOM 관리 없음','#c62828');return;}" +
+"    clickXY(r3.x,r3.y);" +
+"    T('🔍 품목코드 입력 중...');" +
 "    setTimeout(function(){" +
-"      var edts=document.querySelectorAll('input[id*=edt_itemcd],input[id*=ItemCd],input[id*=itemcd]');" +
-"      if(edts.length>0){edts[0].focus();['click','mousedown','mouseup'].forEach(function(t){edts[0].dispatchEvent(new MouseEvent(t,{bubbles:true}));});setTimeout(function(){edts[0].value=pc;['input','change','keyup'].forEach(function(t){edts[0].dispatchEvent(new Event(t,{bubbles:true}));});},200);}" +
+"      var edt=document.querySelector('input[id*=edt_itemcd],input[id*=ItemCd]');" +
+"      if(edt){edt.focus();clickXY(edt.getBoundingClientRect().left+10,edt.getBoundingClientRect().top+10);setTimeout(function(){edt.value=pc;['input','change','keyup'].forEach(function(t){edt.dispatchEvent(new Event(t,{bubbles:true}));});},300);}" +
 "      setTimeout(function(){" +
-"        var qr=null;" +
-"        var els=document.querySelectorAll('div[style*=table-cell]');" +
-"        for(var i=0;i<els.length;i++){if(els[i].textContent.trim()==='조회'&&els[i].style.color==='rgb(255, 255, 255)'){var r=els[i].getBoundingClientRect();if(r.width>0){qr=els[i];break;}}}" +
-"        if(qr){var r=qr.getBoundingClientRect();var x=r.left+r.width/2,y=r.top+r.height/2;['mouseover','mousedown','mouseup','click'].forEach(function(t){qr.dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,clientX:x,clientY:y}));});}" +
+"        var q=findText('조회');if(!q.found)q=(function(){var els=document.querySelectorAll('div[style*=table-cell]');for(var i=0;i<els.length;i++){if(els[i].textContent.trim()==='조회'){var r=els[i].getBoundingClientRect();if(r.width>0)return{found:true,x:r.left+r.width/2,y:r.top+r.height/2};}}return{found:false};})();" +
+"        if(q.found){T('🔍 조회 중...');clickXY(q.x,q.y);}" +
 "        setTimeout(function(){" +
-"          if(!tryExtract())toast('⚠️ 조회 결과가 없습니다. 품목코드를 확인하세요.','#e65100');" +
+"          var result=extractGrid();" +
+"          if(result){T('✅ ERP 완료 ('+result.rows.length+'개)','#2e7d32');if(OPENER)OPENER.postMessage(JSON.stringify({type:'erp',partCode:pc,data:result}),'*');setTimeout(function(){window.close();},1500);}" +
+"          else T('⚠️ 결과 없음 - 수동으로 조회 후 다시 클릭하세요','#e65100');" +
 "        },5000);" +
-"      },1000);" +
+"      },800);" +
 "    },4000);" +
 "  },1500);" +
 "},1500);" +
+"return;}" +
+
+"alert('EP (ep.fursys.com), PLM (plm.fursys.com), ERP (erp.fursys.com) 페이지에서만 사용 가능합니다.');"+
 "})();";
 
-// 북마크릿 링크 설정
-document.getElementById('bmEP').href  = EP_BM;
-document.getElementById('bmPLM').href = PLM_BM;
-document.getElementById('bmERP').href = ERP_BM;
-document.getElementById('epCode').value  = EP_BM;
-document.getElementById('plmCode').value = PLM_BM;
-document.getElementById('erpBmCode').value = ERP_BM;
+document.getElementById('bmAll').href = BM;
+document.getElementById('bmCode').value = BM;
 
-// ═══════════════════════════════════════════════════════
-// CHECK 버튼
-// ═══════════════════════════════════════════════════════
-var plmData = null, erpData = null;
-var plmWin  = null, erpWin  = null;
+// ─── 입력값 sessionStorage 자동 저장/복원 ──────────────────────────────────
+['plmId','partCode'].forEach(function(id){
+  var el=document.getElementById(id);
+  var saved=sessionStorage.getItem('mbom_'+id);
+  if(saved) el.value=saved;
+  el.addEventListener('input',function(){sessionStorage.setItem('mbom_'+id,el.value);});
+});
+
+// ─── CHECK 버튼 ────────────────────────────────────────────────────────────
+var plmData=null, erpData=null;
 
 document.getElementById('btnCheck').addEventListener('click', function(){
   var pc = document.getElementById('partCode').value.trim().toUpperCase();
   if(!pc){ alert('품목코드를 입력하세요.'); return; }
 
-  plmData = null; erpData = null;
-  setStep('plm','run','PLM 탭이 열렸습니다','북마크릿을 클릭하세요');
-  setStep('erp','run','ERP 탭이 열렸습니다','북마크릿을 클릭하세요');
-  setStep('cmp','wait','PLM + ERP 완료 후 자동 실행','');
+  plmData=null; erpData=null;
   document.getElementById('dlBtn').style.display='none';
   document.getElementById('progress').classList.add('show');
+  setStep('plm','run','PLM 탭이 열렸습니다','탭에서 북마크릿을 클릭하세요');
+  setStep('erp','run','EP→ERP 탭이 열렸습니다','① EP탭 북마크릿 클릭 → ② ERP탭 북마크릿 클릭');
+  setStep('cmp','wait','비교 대기','PLM + ERP 완료 후 자동 실행');
 
-  // PLM 탭 열기 (window.name으로 품목코드 전달)
-  plmWin = window.open('https://plm.fursys.com/Windchill/platform/partlist','plm_mbom_tab');
-  if(plmWin) plmWin.name = 'mbom_code:' + pc;
+  // PLM 탭 오픈
+  var plmWin = window.open('https://plm.fursys.com/Windchill/platform/partlist','_plm_mbom');
+  if(plmWin) plmWin.name = 'mbom_code:'+pc;
 
-  // ERP 탭 열기
-  erpWin = window.open('https://ep.fursys.com/v3/main.do','erp_mbom_tab');
-  if(erpWin) erpWin.name = 'mbom_code:' + pc;
+  // ERP 탭 오픈 (EP → ERP Korea 경유)
+  var erpWin = window.open('https://ep.fursys.com/v3/main.do','_erp_mbom');
+  if(erpWin) erpWin.name = 'mbom_code:'+pc;
 });
 
-// Enter 키 지원
-document.getElementById('partCode').addEventListener('keydown', function(e){
-  if(e.key === 'Enter') document.getElementById('btnCheck').click();
-});
+document.getElementById('partCode').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnCheck').click();});
 
-// ═══════════════════════════════════════════════════════
-// postMessage 수신 (PLM/ERP 북마크릿에서 전송)
-// ═══════════════════════════════════════════════════════
+// ─── postMessage 수신 ──────────────────────────────────────────────────────
 window.addEventListener('message', function(e){
   var msg;
-  try{ msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; }
-  catch(err){ return; }
-  if(!msg || !msg.type) return;
+  try{ msg=typeof e.data==='string'?JSON.parse(e.data):e.data; }catch(err){return;}
+  if(!msg||!msg.type) return;
 
-  if(msg.type === 'plm'){
-    plmData = msg;
+  if(msg.type==='plm'){
+    plmData=msg;
     setStep('plm','done','PLM 완료','부품 '+msg.rows.length+'개 추출');
     if(erpData) runCompare();
   }
-  if(msg.type === 'erp'){
-    erpData = msg;
+  if(msg.type==='erp'){
+    erpData=msg;
     setStep('erp','done','ERP 완료','행 '+(msg.data&&msg.data.rows?msg.data.rows.length:0)+'개 추출');
     if(plmData) runCompare();
   }
 });
 
-// ═══════════════════════════════════════════════════════
-// 비교 로직
-// ═══════════════════════════════════════════════════════
-var YELLOW = {patternType:'solid', fgColor:{rgb:'FFFFFF00'}};
-var HEADER_FILL = {patternType:'solid', fgColor:{rgb:'FFD3D3D3'}};
+// ─── 비교 로직 ─────────────────────────────────────────────────────────────
+var YELLOW={patternType:'solid',fgColor:{rgb:'FFFFFF00'}};
 
 function runCompare(){
   setStep('cmp','run','비교 중...','');
   try{
-    var pc = plmData.partCode || '';
-    var plmRows = plmData.rows || [];
-    var header  = erpData.data.header || [];
-    var erpRows = erpData.data.rows || [];
+    var pc=plmData.partCode||'';
+    var plmRows=plmData.rows||[];
+    var header=erpData.data.header||[];
+    var erpRows=erpData.data.rows||[];
+    var iCode=header.indexOf('품목코드');
+    var iColor=header.indexOf('색상');
+    var iQty=header.indexOf('정소요량')>=0?header.indexOf('정소요량'):header.indexOf('소요량');
+    if(iCode<0) throw new Error("'품목코드' 컬럼 없음");
 
-    var idxCode  = header.indexOf('품목코드');
-    var idxColor = header.indexOf('색상');
-    var idxQty   = header.indexOf('정소요량') >= 0 ? header.indexOf('정소요량') : header.indexOf('소요량');
-
-    if(idxCode < 0){ throw new Error("ERP 데이터에 '품목코드' 컬럼이 없습니다"); }
-
-    // ERP dict
-    var erpDict={}, erpFCode={}, erpOrder=[];
-    erpRows.forEach(function(obj){
-      var code=String(obj['품목코드']||'').trim();
-      if(!code||code===pc) return;
-      var base=code.split('-R')[0].split('-r')[0];
-      erpDict[base]=obj; erpFCode[base]=code; erpOrder.push(base);
+    var eDict={},eFC={},eOrd=[];
+    erpRows.forEach(function(o){
+      var c=String(o['품목코드']||'').trim();
+      if(!c||c===pc)return;
+      var b=c.split('-R')[0].split('-r')[0];
+      eDict[b]=o;eFC[b]=c;eOrd.push(b);
     });
 
-    var wsRows=[], styles={};
-    function addRow(vals, yellows){
-      var ri=wsRows.length; wsRows.push(vals);
-      if(yellows&&yellows.length) styles[ri]=yellows;
-    }
+    var wsR=[],sty={};
+    function addRow(vals,yw){var ri=wsR.length;wsR.push(vals);if(yw&&yw.length)sty[ri]=yw;}
 
-    addRow(header, []); // 헤더
+    addRow(header,[]);
+    erpRows.forEach(function(o){if(String(o['품목코드']||'').trim()===pc)addRow(header.map(function(h){return o[h]||'';}));});
 
-    // 모품목 행
-    erpRows.forEach(function(obj){
-      if(String(obj['품목코드']||'').trim()===pc)
-        addRow(header.map(function(h){return obj[h]||'';}), []);
-    });
-
-    var written=new Set(), diffCount=0, insertCount=0;
-
+    var written=new Set(),diffC=0,insC=0;
     plmRows.forEach(function(r){
-      var plmBase=r.code.split('-R')[0].split('-r')[0];
-      if(erpDict[plmBase]){
-        var eo=erpDict[plmBase]; written.add(plmBase);
-        var vals=header.map(function(h){return eo[h]||'';}), yellows=[];
-        var erpColor=String(eo['색상']||'').trim();
-        if(erpColor!==r.color&&idxColor>=0) yellows.push(idxColor);
-        var erpQty=parseFloat(eo['정소요량']||eo['소요량']||0);
-        var plmQty=parseFloat(r.qty);
-        if(plmQty!==erpQty&&idxQty>=0) yellows.push(idxQty);
-        addRow(vals, yellows);
-        if(yellows.length) diffCount++;
+      var pb=r.code.split('-R')[0].split('-r')[0];
+      if(eDict[pb]){
+        var eo=eDict[pb];written.add(pb);
+        var vals=header.map(function(h){return eo[h]||'';}),yw=[];
+        if(String(eo['색상']||'').trim()!==r.color&&iColor>=0)yw.push(iColor);
+        var eq=parseFloat(eo['정소요량']||eo['소요량']||0),pq=parseFloat(r.qty);
+        if(pq!==eq&&iQty>=0)yw.push(iQty);
+        addRow(vals,yw);if(yw.length)diffC++;
       } else {
-        var newRow=header.map(function(){return '';});
-        newRow[idxCode]=r.code;
-        if(idxColor>=0) newRow[idxColor]=r.color;
-        if(idxQty>=0)   newRow[idxQty]=r.qty;
-        addRow(newRow, header.map(function(_,i){return i;})); // 전체 노란색
-        insertCount++;
+        var nr=header.map(function(){return '';});
+        nr[iCode]=r.code;if(iColor>=0)nr[iColor]=r.color;if(iQty>=0)nr[iQty]=r.qty;
+        addRow(nr,header.map(function(_,i){return i;}));insC++;
       }
     });
+    eOrd.forEach(function(b){if(!written.has(b)){var eo=eDict[b];addRow(header.map(function(h){return eo[h]||'';}));}});
 
-    erpOrder.forEach(function(base){
-      if(!written.has(base)){
-        var eo=erpDict[base];
-        addRow(header.map(function(h){return eo[h]||'';}), []);
-      }
-    });
-
-    // SheetJS 워크시트 생성
     var ws={};
-    var range={s:{r:0,c:0},e:{r:wsRows.length-1,c:header.length-1}};
-    wsRows.forEach(function(row, ri){
-      var yset=new Set(styles[ri]||[]);
-      var fullY=yset.size===header.length;
-      row.forEach(function(val, ci){
+    var range={s:{r:0,c:0},e:{r:wsR.length-1,c:header.length-1}};
+    wsR.forEach(function(row,ri){
+      var ys=new Set(sty[ri]||[]),full=ys.size===header.length;
+      row.forEach(function(val,ci){
         var ref=XLSX.utils.encode_cell({r:ri,c:ci});
-        var cell={v:val===null||val===undefined?'':val, t:'s'};
-        if(ri===0){
-          cell.s={font:{bold:true},fill:HEADER_FILL};
-        } else if(fullY||yset.has(ci)){
-          cell.s={fill:YELLOW};
-        }
+        var cell={v:val===null||val===undefined?'':val,t:'s'};
+        if(ri===0)cell.s={font:{bold:true},fill:{patternType:'solid',fgColor:{rgb:'FFD3D3D3'}}};
+        else if(full||ys.has(ci))cell.s={fill:YELLOW};
         ws[ref]=cell;
       });
     });
@@ -466,53 +394,34 @@ function runCompare(){
 
     var wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'BOM비교');
-
-    var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true});
-    var blob=new Blob([wbout],{type:'application/octet-stream'});
+    var out=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true});
+    var blob=new Blob([out],{type:'application/octet-stream'});
     var url=URL.createObjectURL(blob);
     var fname='compare_'+pc+'.xlsx';
 
-    setStep('cmp','done','비교 완료','불일치 '+diffCount+'건 / PLM신규 '+insertCount+'건');
-
+    setStep('cmp','done','비교 완료','불일치 '+diffC+'건 / PLM신규 '+insC+'건');
     var dlBtn=document.getElementById('dlBtn');
     dlBtn.style.display='block';
-    dlBtn.onclick=function(){
-      var a=document.createElement('a');
-      a.href=url; a.download=fname;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    };
-    // 자동 다운로드
+    dlBtn.onclick=function(){var a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);};
     dlBtn.click();
-
-  } catch(err){
-    setStep('cmp','err','비교 오류',err.message);
-  }
+  }catch(err){setStep('cmp','err','비교 오류',err.message);}
 }
 
-// ═══════════════════════════════════════════════════════
-// UI 헬퍼
-// ═══════════════════════════════════════════════════════
-function setStep(key, state, title, desc){
-  var icons={plm:'plmIcon',erp:'erpIcon',cmp:'cmpIcon'};
-  var badges={plm:'plmBadge',erp:'erpBadge',cmp:'cmpBadge'};
-  var descs={plm:'plmDesc',erp:'erpDesc',cmp:'cmpDesc'};
-  var iconEl=document.getElementById(icons[key]);
-  var badgeEl=document.getElementById(badges[key]);
-  var descEl=document.getElementById(descs[key]);
-  var emojiMap={plm:{wait:'📋',run:'⟳',done:'✅',err:'❌'},erp:{wait:'📦',run:'⟳',done:'✅',err:'❌'},cmp:{wait:'🔄',run:'⟳',done:'🎉',err:'❌'}};
-  iconEl.textContent=emojiMap[key][state]||'⟳';
-  iconEl.className='step-icon'+(state==='run'?' spin':'')+(state==='done'?' done':'')+(state==='err'?' err':'');
-  badgeEl.className='step-badge badge-'+state;
-  badgeEl.textContent={wait:'대기',run:'진행중',done:'완료',err:'오류'}[state]||state;
-  if(title) document.querySelector('#'+icons[key]).closest('.step-row').querySelector('.step-title').textContent=title;
-  if(desc!==undefined) descEl.textContent=desc;
-}
-
-function toggleBm(){
-  var body=document.getElementById('bmBody');
-  var toggle=document.getElementById('bmToggle');
-  var open=body.classList.toggle('open');
-  toggle.textContent=open?'▲ 접기':'▼ 펼치기';
+// ─── UI 헬퍼 ───────────────────────────────────────────────────────────────
+function setStep(key,state,title,desc){
+  var map={plm:['sPlm','plmTitle','plmDesc','plmBadge'],erp:['sErp','erpTitle','erpDesc','erpBadge'],cmp:['sCmp',null,'cmpDesc','cmpBadge']};
+  var m=map[key];
+  var el=document.getElementById(m[0]);
+  el.className='step'+(state==='run'?' active':state==='done'?' done':state==='err'?' err':'');
+  if(m[1]&&title)document.getElementById(m[1]).textContent=title;
+  if(desc!==undefined)document.getElementById(m[2]).textContent=desc;
+  var badge=document.getElementById(m[3]);
+  badge.className='badge badge-'+(state==='run'?'r':state==='done'?'d':state==='err'?'e':'w');
+  badge.textContent={wait:'대기',run:'진행중',done:'완료',err:'오류'}[state]||state;
+  var ico=el.querySelector('.step-ico');
+  var em={plm:{wait:'📋',run:'⟳',done:'✅',err:'❌'},erp:{wait:'📦',run:'⟳',done:'✅',err:'❌'},cmp:{wait:'🔄',run:'⟳',done:'🎉',err:'❌'}};
+  ico.textContent=em[key][state]||'⟳';
+  ico.className='step-ico'+(state==='run'?' spin':'');
 }
 </script>
 </body>
